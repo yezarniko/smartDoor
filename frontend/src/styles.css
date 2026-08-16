@@ -1,0 +1,7 @@
+html, body, #root { min-height: 100%; margin: 0; }
+body { background: #f4f7f9; }
+.scanner-video { width: 100%; max-height: 460px; border-radius: 16px; background: #0f172a; object-fit: cover; }
+.door-visual { width: 180px; height: 280px; border: 12px solid #334155; border-radius: 8px 8px 0 0; position: relative; transition: transform .5s ease; transform-origin: left; background: linear-gradient(135deg,#0f766e,#115e59); }
+.door-visual.unlocked { transform: perspective(600px) rotateY(-35deg); background: linear-gradient(135deg,#16a34a,#15803d); }
+.door-handle { width: 18px; height: 18px; border-radius: 50%; background: #fbbf24; position: absolute; right: 18px; top: 135px; }
+pre.model-output { white-space: pre-wrap; max-height: 360px; overflow: auto; background:#0f172a; color:#d1fae5; padding:16px; border-radius:12px; font-size:12px; }

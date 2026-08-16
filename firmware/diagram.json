@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "author": "SmartDoor",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-servo", "id": "servo", "top": -90, "left": 260, "attrs": {} },
+    { "type": "wokwi-led", "id": "red", "top": 90, "left": 260, "attrs": { "color": "red" } },
+    { "type": "wokwi-led", "id": "green", "top": 140, "left": 260, "attrs": { "color": "green" } },
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 200, "left": 260, "attrs": { "volume": "0.1" } }
+  ],
+  "connections": [
+    [ "esp:D18", "servo:PWM", "orange", [] ],
+    [ "esp:5V", "servo:V+", "red", [] ],
+    [ "esp:GND.1", "servo:GND", "black", [] ],
+    [ "esp:D19", "red:A", "red", [] ],
+    [ "red:C", "esp:GND.1", "black", [] ],
+    [ "esp:D21", "green:A", "green", [] ],
+    [ "green:C", "esp:GND.1", "black", [] ],
+    [ "esp:D5", "buzzer:1", "purple", [] ],
+    [ "buzzer:2", "esp:GND.1", "black", [] ]
+  ],
+  "dependencies": {}
+}
+

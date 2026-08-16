@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: smartdoor-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/smartdoor}
+    username: ${SPRING_DATASOURCE_USERNAME:smartdoor}
+    password: ${SPRING_DATASOURCE_PASSWORD:smartdoor_dev_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  jackson:
+    time-zone: UTC
+  session:
+    timeout: 8h
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+smartdoor:
+  time-zone: ${SMARTDOOR_TIME_ZONE:Asia/Yangon}
+  admin:
+    username: ${SMARTDOOR_ADMIN_USERNAME:admin}
+    password: ${SMARTDOOR_ADMIN_PASSWORD:ChangeMe123!}
+  qr:
+    secret: ${SMARTDOOR_QR_SECRET:replace-with-at-least-32-random-characters}
+  mqtt:
+    host: ${SMARTDOOR_MQTT_HOST:localhost}
+    port: ${SMARTDOOR_MQTT_PORT:1883}
+    username: ${SMARTDOOR_MQTT_USERNAME:smartdoor}
+    password: ${SMARTDOOR_MQTT_PASSWORD:smartdoor_mqtt_password}

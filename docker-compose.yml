@@ -1,0 +1,98 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-smartdoor}
+      MARIADB_USER: ${MARIADB_USER:-smartdoor}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-smartdoor_dev_password}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-smartdoor_root_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+    environment:
+      MQTT_USERNAME: ${MQTT_USERNAME:-smartdoor}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-smartdoor_mqtt_password}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        cp /mosquitto-config/mosquitto.conf /tmp/mosquitto.conf &&
+        mosquitto_passwd -b -c /tmp/mosquitto.passwd "$${MQTT_USERNAME}" "$${MQTT_PASSWORD}" &&
+        chmod 0644 /tmp/mosquitto.passwd &&
+        exec mosquitto -c /tmp/mosquitto.conf
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto-config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 1883 -u \"$$MQTT_USERNAME\" -P \"$$MQTT_PASSWORD\" -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE:-smartdoor}
+      SPRING_DATASOURCE_USERNAME: ${MARIADB_USER:-smartdoor}
+      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD:-smartdoor_dev_password}
+      SMARTDOOR_ADMIN_USERNAME: ${SMARTDOOR_ADMIN_USERNAME:-admin}
+      SMARTDOOR_ADMIN_PASSWORD: ${SMARTDOOR_ADMIN_PASSWORD:-ChangeMe123!}
+      SMARTDOOR_QR_SECRET: ${SMARTDOOR_QR_SECRET:-replace-with-at-least-32-random-characters}
+      SMARTDOOR_MQTT_HOST: mosquitto
+      SMARTDOOR_MQTT_PORT: 1883
+      SMARTDOOR_MQTT_USERNAME: ${MQTT_USERNAME:-smartdoor}
+      SMARTDOOR_MQTT_PASSWORD: ${MQTT_PASSWORD:-smartdoor_mqtt_password}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  device-simulator:
+    build: ./device-simulator
+    restart: unless-stopped
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_USERNAME: ${MQTT_USERNAME:-smartdoor}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-smartdoor_mqtt_password}
+      DOOR_ID: DOOR-01
+      DEVICE_ID: SIM-DOOR-01
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+
+volumes:
+  mariadb-data:
