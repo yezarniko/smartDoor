@@ -19,7 +19,7 @@ const nav = [
   ['/scanner/door-01', 'Webcam Scanner', <QrCodeScannerOutlined />],
   ['/access-logs', 'Access Logs', <ReceiptLongOutlined />],
   ['/door-status', 'Door Status', <SensorDoorOutlined />],
-  ['/model', 'Decision Tree', <AccountTreeOutlined />],
+  // ['/model', 'Decision Tree', <AccountTreeOutlined />],
 ] as const
 
 export default function AppShell({ children, onLoggedOut }: { children: ReactNode; onLoggedOut: () => void }) {
