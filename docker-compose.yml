@@ -29,7 +29,8 @@ services:
       - >-
         cp /mosquitto-config/mosquitto.conf /tmp/mosquitto.conf &&
         mosquitto_passwd -b -c /tmp/mosquitto.passwd "$${MQTT_USERNAME}" "$${MQTT_PASSWORD}" &&
-        chmod 0644 /tmp/mosquitto.passwd &&
+        chown mosquitto:mosquitto /tmp/mosquitto.passwd &&
+        chmod 0700 /tmp/mosquitto.passwd &&
         exec mosquitto -c /tmp/mosquitto.conf
     ports:
       - "1883:1883"

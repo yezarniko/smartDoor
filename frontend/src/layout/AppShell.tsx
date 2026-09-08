@@ -29,11 +29,11 @@ export default function AppShell({ children, onLoggedOut }: { children: ReactNod
     <AppBar position="fixed" sx={{ zIndex: theme => theme.zIndex.drawer + 1 }}>
       <Toolbar><SensorDoorOutlined sx={{ mr: 1.5 }} /><Typography variant="h6" sx={{ flexGrow: 1 }}>SmartDoor Control</Typography><Button color="inherit" onClick={logout}>Sign out</Button></Toolbar>
     </AppBar>
-    <Drawer variant="permanent" sx={{ width: drawerWidth, [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' } }}>
-      <Toolbar /><Box sx={{ p: 2 }}><Typography variant="overline" color="text.secondary">Local access system</Typography></Box><Divider />
-      <List>{nav.map(([to, label, icon]) => <ListItemButton component={Link} to={to} key={to} selected={location.pathname === to || (to === '/users' && location.pathname.startsWith('/users/'))}><ListItemIcon>{icon}</ListItemIcon><ListItemText primary={label} /></ListItemButton>)}</List>
+    <Drawer variant="permanent" sx={{ width: { xs:64, sm:drawerWidth }, flexShrink:0, [`& .MuiDrawer-paper`]: { width: { xs:64, sm:drawerWidth }, boxSizing: 'border-box' } }}>
+      <Toolbar /><Box sx={{ p: 2, display:{xs:'none',sm:'block'} }}><Typography variant="overline" color="text.secondary">Local access system</Typography></Box><Divider />
+      <List>{nav.map(([to, label, icon]) => <ListItemButton component={Link} to={to} key={to} aria-label={label} title={label} selected={location.pathname === to || (to === '/users' && location.pathname.startsWith('/users/'))}><ListItemIcon>{icon}</ListItemIcon><ListItemText primary={label} sx={{ display:{xs:'none',sm:'block'} }} /></ListItemButton>)}</List>
     </Drawer>
-    <Box component="main" sx={{ flexGrow: 1, ml: `${drawerWidth}px`, minWidth: 0 }}><Toolbar /><Container maxWidth="xl" sx={{ py: 4 }}>{children}</Container></Box>
+    <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}><Toolbar /><Container maxWidth="xl" sx={{ py: {xs:2,sm:4}, px:{xs:1.5,sm:3} }}>{children}</Container></Box>
   </Box>
 }
 

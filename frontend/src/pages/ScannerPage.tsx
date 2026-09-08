@@ -18,7 +18,19 @@ export default function ScannerPage() {
   return <Stack spacing={3}>
     <div><Typography variant="h4" fontWeight={800}>Webcam scanner</Typography><Typography color="text.secondary">Door terminal TERMINAL-01 · DOOR-01</Typography></div>
     {error&&<Alert severity="error" onClose={()=>setError('')}>{error}</Alert>}
-    <Card><CardContent><Stack spacing={2}><Stack direction={{xs:'column',sm:'row'}} spacing={2}><FormControl fullWidth><InputLabel>Camera</InputLabel><Select value={camera} label="Camera" onChange={e=>setCamera(e.target.value)}>{cameras.map((item,index)=><MenuItem value={item.deviceId} key={item.deviceId}>{item.label||`Camera ${index+1}`}</MenuItem>)}</Select></FormControl>{running?<Button color="error" variant="contained" startIcon={<StopCircleOutlined/>} onClick={stop}>Stop</Button>:<Button variant="contained" startIcon={<VideocamOutlined/>} onClick={start} disabled={!cameras.length}>Start camera</Button>}<Button component="label" variant="outlined" startIcon={<UploadFileOutlined/>}>Upload QR<input type="file" accept="image/*" hidden onChange={upload}/></Button></Stack><video className="scanner-video" ref={videoRef} muted playsInline /></Stack></CardContent></Card>
+    <Card sx={{ width:'100%', maxWidth:440, alignSelf:'center' }}><CardContent><Stack spacing={2}>
+      <FormControl fullWidth disabled={running}><InputLabel id="scanner-camera-label">Camera</InputLabel><Select labelId="scanner-camera-label" value={camera} label="Camera" onChange={e=>setCamera(e.target.value)}>{cameras.map((item,index)=><MenuItem value={item.deviceId} key={item.deviceId}>{item.label||`Camera ${index+1}`}</MenuItem>)}</Select></FormControl>
+      <Box sx={{ display:'flex', flexWrap:'wrap', gap:1, '& .MuiButton-root':{ flex:'1 1 140px', minHeight:44, whiteSpace:'nowrap' } }}>
+        {running?<Button color="error" variant="contained" startIcon={<StopCircleOutlined/>} onClick={stop}>Stop camera</Button>:<Button variant="contained" startIcon={<VideocamOutlined/>} onClick={start} disabled={!cameras.length}>Start camera</Button>}
+        <Button component="label" variant="outlined" startIcon={<UploadFileOutlined/>}>Upload QR<input type="file" accept="image/*" hidden onChange={upload}/></Button>
+      </Box>
+      <Box className="scanner-preview">
+        <video className="scanner-video" ref={videoRef} muted playsInline aria-label="Live QR scanner camera preview" />
+        <div className="scanner-overlay" aria-hidden="true"><div className="scanner-guide" /></div>
+        <Typography className="scanner-status" variant="body2" role="status">{running?'Camera live · Align QR code here':'Start camera to scan a QR code'}</Typography>
+      </Box>
+      <Typography variant="body2" color="text.secondary" textAlign="center">Keep the entire QR code inside the square. Hold steady in good light to scan automatically.</Typography>
+    </Stack></CardContent></Card>
     {busy&&<Alert severity="info">Verifying credential…</Alert>}
     {decision&&<Card sx={{borderLeft:6,borderColor:decision.decision==='GRANTED'?'success.main':'error.main'}}><CardContent><Stack direction="row" justifyContent="space-between" alignItems="center"><div><Typography variant="h5" fontWeight={800}>{decision.decision==='GRANTED'?'Access granted':'Access denied'}</Typography><Typography color="text.secondary">{decision.userName||'Unknown user'} · {decision.resultCode}</Typography></div><Chip color={decision.decision==='GRANTED'?'success':'error'} label={decision.executionStatus}/></Stack><Box component="ol" sx={{pl:2.5,mb:0}}>{decision.path.map((step,index)=><li key={`${step}-${index}`}><Typography variant="body2">{step}</Typography></li>)}</Box></CardContent></Card>}
   </Stack>
