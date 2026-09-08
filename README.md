@@ -11,6 +11,16 @@ Software-first smart door access control using administrator-issued QR credentia
 
 The first startup seeds `DOOR-01`, terminal `TERMINAL-01`, simulated actuator `SIM-DOOR-01`, and the configured administrator.
 
+## Clear users for the numeric-code system
+
+On Windows PowerShell, run this from the project root:
+
+```powershell
+.\scripts\clear-users.ps1
+```
+
+Type `CLEAR-USERS` when prompted. This removes every user plus their QR credentials, schedules, door permissions, and user-linked access events. It keeps administrators, roles, doors, and devices. The next created user receives code `1`.
+
 ## Local endpoints
 
 - UI: `http://localhost:5173`

@@ -1,9 +1,13 @@
-export type UserRole = 'ADMIN' | 'STAFF' | 'VISITOR'
+export type UserRole = string
 export type UserStatus = 'ACTIVE' | 'INACTIVE'
 
 export interface UserRecord {
-  id: string; publicId: string; fullName: string; email?: string; phone?: string
+  id: string; publicId: string; code: number; fullName: string; email?: string; phone?: string
   role: UserRole; status: UserStatus; createdAt: string; updatedAt: string
+}
+export interface RoleRecord {
+  code: string; name: string; modelRole: 'ADMIN' | 'STAFF' | 'VISITOR'
+  createdAt: string; updatedAt: string
 }
 export interface Door { id: string; publicId: string; name: string; status: string }
 export interface Permission { doorId: string; doorPublicId: string; doorName: string }
@@ -30,4 +34,3 @@ export interface ModelInfo {
   version: string; accuracy: number; precision: number; recall: number
   confusionMatrix: string; tree: string; trainingRows: number
 }
-

@@ -26,6 +26,7 @@ public class AccessService {
     private final PermissionRepository permissions;
     private final ScheduleRepository schedules;
     private final AccessEventRepository events;
+    private final RoleRepository roles;
     private final QrTokenService tokens;
     private final DecisionTreeService decisionTree;
     private final MqttDoorService mqtt;
@@ -35,6 +36,7 @@ public class AccessService {
 
     public AccessService(DoorRepository doors, DeviceRepository devices, QrCredentialRepository credentials,
                          PermissionRepository permissions, ScheduleRepository schedules, AccessEventRepository events,
+                         RoleRepository roles,
                          QrTokenService tokens, DecisionTreeService decisionTree, MqttDoorService mqtt,
                          ObjectMapper objectMapper) {
         this.doors = doors;
@@ -43,6 +45,7 @@ public class AccessService {
         this.permissions = permissions;
         this.schedules = schedules;
         this.events = events;
+        this.roles = roles;
         this.tokens = tokens;
         this.decisionTree = decisionTree;
         this.mqtt = mqtt;
@@ -97,8 +100,9 @@ public class AccessService {
         boolean deviceRegistered = true;
         long failures = events.countRecentFailures(user.getId(), now.minus(Duration.ofMinutes(15)));
         String failureBucket = failures >= 4 ? "HIGH" : failures >= 2 ? "MEDIUM" : "LOW";
+        String modelRole = roles.findById(user.getRole()).map(role -> role.getModelRole().name()).orElse("VISITOR");
         DecisionTreeService.Prediction prediction = decisionTree.predict(
-                doorAllowed, scheduleAllowed, deviceRegistered, user.getRole().name(), failureBucket);
+                doorAllowed, scheduleAllowed, deviceRegistered, modelRole, failureBucket);
         path.addAll(prediction.path());
 
         if (!doorAllowed) return deny(requestId, user, credential, door, terminal, "DOOR_NOT_PERMITTED", path, prediction);
@@ -175,4 +179,3 @@ public class AccessService {
         catch (Exception exception) { return List.of(); }
     }
 }
-

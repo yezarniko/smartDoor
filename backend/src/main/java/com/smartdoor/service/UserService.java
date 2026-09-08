@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -16,13 +19,20 @@ public class UserService {
     private final DoorRepository doors;
     private final PermissionRepository permissions;
     private final ScheduleRepository schedules;
+    private final QrCredentialRepository credentials;
+    private final AccessEventRepository events;
+    private final RoleRepository roles;
 
     public UserService(UserRepository users, DoorRepository doors, PermissionRepository permissions,
-                       ScheduleRepository schedules) {
+                       ScheduleRepository schedules, QrCredentialRepository credentials,
+                       AccessEventRepository events, RoleRepository roles) {
         this.users = users;
         this.doors = doors;
         this.permissions = permissions;
         this.schedules = schedules;
+        this.credentials = credentials;
+        this.events = events;
+        this.roles = roles;
     }
 
     @Transactional(readOnly = true)
@@ -35,23 +45,35 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse get(String id) { return toResponse(requireUser(id)); }
 
-    @Transactional
-    public UserResponse create(UserRequest request) {
-        if (users.existsByPublicId(request.publicId().trim())) {
-            throw new IllegalArgumentException("User ID already exists");
-        }
-        return toResponse(users.save(new UserAccount(request.publicId(), request.fullName(), request.email(),
-                request.phone(), request.role())));
+    @Transactional(readOnly = true)
+    public NextUserCodeResponse nextCode() {
+        return new NextUserCodeResponse(nextAvailableCode());
     }
 
     @Transactional
-    public UserResponse update(String id, UserRequest request) {
+    public synchronized UserResponse create(UserCreateRequest request) {
+        String role = requireRole(request.role());
+        int code = nextAvailableCode();
+        String publicId = "USR-" + code;
+        return toResponse(users.saveAndFlush(new UserAccount(publicId, code, request.fullName(), request.email(),
+                request.phone(), role)));
+    }
+
+    @Transactional
+    public UserResponse update(String id, UserUpdateRequest request) {
         UserAccount user = requireUser(id);
-        users.findByPublicId(request.publicId().trim())
-                .filter(existing -> !existing.getId().equals(id))
-                .ifPresent(existing -> { throw new IllegalArgumentException("User ID already exists"); });
-        user.update(request.publicId(), request.fullName(), request.email(), request.phone(), request.role());
+        user.update(request.fullName(), request.email(), request.phone(), requireRole(request.role()));
         return toResponse(user);
+    }
+
+    @Transactional
+    public void delete(String id) {
+        requireUser(id);
+        events.deleteAllByUserId(id);
+        credentials.deleteAllByUserId(id);
+        schedules.deleteAllByUserId(id);
+        permissions.deleteAllByUserId(id);
+        users.deleteById(id);
     }
 
     @Transactional
@@ -100,9 +122,22 @@ public class UserService {
         return users.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
+    private int nextAvailableCode() {
+        Set<Integer> used = new HashSet<>();
+        users.findAll().forEach(user -> used.add(user.getUserCode()));
+        int candidate = 1;
+        while (used.contains(candidate)) candidate++;
+        return candidate;
+    }
+
+    private String requireRole(String value) {
+        String code = value.trim().toUpperCase(Locale.ROOT);
+        if (!roles.existsById(code)) throw new IllegalArgumentException("Role does not exist: " + code);
+        return code;
+    }
+
     public static UserResponse toResponse(UserAccount user) {
-        return new UserResponse(user.getId(), user.getPublicId(), user.getFullName(), user.getEmail(), user.getPhone(),
+        return new UserResponse(user.getId(), user.getPublicId(), user.getUserCode(), user.getFullName(), user.getEmail(), user.getPhone(),
                 user.getRole(), user.getStatus(), user.getCreatedAt(), user.getUpdatedAt());
     }
 }
-

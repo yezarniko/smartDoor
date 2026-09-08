@@ -16,12 +16,15 @@ public class UserController {
     public UserController(UserService service) { this.service = service; }
 
     @GetMapping public List<UserResponse> list() { return service.list(); }
+    @GetMapping("/next-code") public NextUserCodeResponse nextCode() { return service.nextCode(); }
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse create(@Valid @RequestBody UserRequest request) { return service.create(request); }
+    public UserResponse create(@Valid @RequestBody UserCreateRequest request) { return service.create(request); }
     @GetMapping("/{id}") public UserResponse get(@PathVariable String id) { return service.get(id); }
-    @PatchMapping("/{id}") public UserResponse update(@PathVariable String id, @Valid @RequestBody UserRequest request) {
+    @PatchMapping("/{id}") public UserResponse update(@PathVariable String id, @Valid @RequestBody UserUpdateRequest request) {
         return service.update(id, request);
     }
+    @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) { service.delete(id); }
     @PatchMapping("/{id}/status") public UserResponse status(@PathVariable String id, @Valid @RequestBody StatusRequest request) {
         return service.setStatus(id, request);
     }
@@ -40,4 +43,3 @@ public class UserController {
         return service.replaceSchedules(id, request);
     }
 }
-

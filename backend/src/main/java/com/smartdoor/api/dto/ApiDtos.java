@@ -13,16 +13,32 @@ public final class ApiDtos {
     public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
     public record SessionResponse(boolean authenticated, String username) {}
 
-    public record UserRequest(
-            @NotBlank @Size(max = 40) String publicId,
+    public record UserCreateRequest(
             @NotBlank @Size(max = 160) String fullName,
             @Email @Size(max = 190) String email,
             @Size(max = 50) String phone,
-            @NotNull UserRole role) {}
+            @NotBlank @Size(max = 30) String role) {}
 
-    public record UserResponse(String id, String publicId, String fullName, String email, String phone,
-                               UserRole role, UserStatus status, Instant createdAt, Instant updatedAt) {}
+    public record UserUpdateRequest(
+            @NotBlank @Size(max = 160) String fullName,
+            @Email @Size(max = 190) String email,
+            @Size(max = 50) String phone,
+            @NotBlank @Size(max = 30) String role) {}
+
+    public record UserResponse(String id, String publicId, int code, String fullName, String email, String phone,
+                               String role, UserStatus status, Instant createdAt, Instant updatedAt) {}
+    public record NextUserCodeResponse(int code) {}
     public record StatusRequest(@NotNull UserStatus status) {}
+
+    public record RoleRequest(
+            @NotBlank @Size(max = 30) String code,
+            @NotBlank @Size(max = 80) String name,
+            @NotNull UserRole modelRole) {}
+    public record RoleUpdateRequest(
+            @NotBlank @Size(max = 80) String name,
+            @NotNull UserRole modelRole) {}
+    public record RoleResponse(String code, String name, UserRole modelRole,
+                               Instant createdAt, Instant updatedAt) {}
 
     public record DoorResponse(String id, String publicId, String name, DoorStatus status) {}
     public record PermissionRequest(@NotNull List<@NotBlank String> doorIds) {}
@@ -56,4 +72,3 @@ public final class ApiDtos {
 
     public record ApiError(String code, String message, Instant timestamp) {}
 }
-
